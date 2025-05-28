@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, Heart, Star, User, Mail, Calendar, Edit2, Save, X } from "lucide-react"
+import { BookOpen, Heart, Bookmark, User, Mail, Calendar, Edit2, Save, X, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
@@ -247,7 +247,7 @@ export default function ProfilePage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Favoris</CardTitle>
-              <Star className="h-4 w-4 text-yellow-500" />
+              <Bookmark className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.favoriteArticles}</div>
@@ -384,7 +384,7 @@ export default function ProfilePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
+              <Bookmark className="h-5 w-5 text-yellow-500" />
               Articles Favoris ({favoriteArticles.length})
             </CardTitle>
           </CardHeader>

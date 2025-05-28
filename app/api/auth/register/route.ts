@@ -1,46 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { MongoClient } from 'mongodb'
-import bcrypt from 'bcryptjs'
+import { NextRequest, NextResponse } from "next/server"
+import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
+import { createUser, findUserByEmail } from "@/lib/db/users"
+import { updateUserProfilesAsync } from "@/lib/updateUserProfiles"
 
 export async function POST(request: NextRequest) {
-  let client: MongoClient | null = null
-  
   try {
     const { name, email, password, interests } = await request.json()
 
-    console.log('Registration attempt for email:', email) // Debug
-
-    // Validation
+    // Validation des données
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: 'Tous les champs sont requis' },
+        { error: "Tous les champs sont requis" },
         { status: 400 }
       )
     }
 
-    const uri = process.env.MONGODB_URI
-    if (!uri) {
-      throw new Error('MONGODB_URI not found in environment variables')
-    }
-
-    client = new MongoClient(uri)
-    await client.connect()
-    
-    const db = client.db('Online_courses')
-
-    // Vérifier si l'utilisateur existe déjà dans la collection userAR
-    const normalizedEmail = email.toLowerCase().trim()
-    console.log('Checking for existing user with email:', normalizedEmail) // Debug
-    
-    const existingUser = await db.collection('userAR').findOne({ 
-      email: normalizedEmail 
-    })
-    
-    console.log('Existing user found:', existingUser ? 'YES' : 'NO') // Debug
-    
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await findUserByEmail(email)
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Un compte avec cet email existe déjà' },
+        { error: "Un utilisateur avec cet email existe déjà" },
         { status: 400 }
       )
     }
@@ -49,36 +29,57 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12)
 
     // Créer l'utilisateur
-    const newUser = {
-      name: name.trim(),
-      email: normalizedEmail,
+    const user = await createUser({
+      name,
+      email,
       password: hashedPassword,
       interests: interests || [],
-      likes: [],
       favorites: [],
-      read: [], // Initialiser le champ read
-      createdAt: new Date(),
-    }
+      likes: [],
+      read: []
+    })
 
-    console.log('Creating new user:', { ...newUser, password: '[REDACTED]' }) // Debug
+    // Générer le token JWT
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || "fallback-secret",
+      { expiresIn: "7d" }
+    )
 
-    const result = await db.collection('userAR').insertOne(newUser)
+    // Déclencher la mise à jour des profils utilisateurs en arrière-plan
+    updateUserProfilesAsync('user_created')
 
-    console.log('User created with ID:', result.insertedId) // Debug
-
-    return NextResponse.json(
-      { message: 'Utilisateur créé avec succès', userId: result.insertedId },
+    // Créer la réponse avec le cookie
+    const response = NextResponse.json(
+      {
+        message: "Inscription réussie",
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          interests: user.interests,
+          favorites: user.favorites,
+          likes: user.likes,
+          read: user.read
+        }
+      },
       { status: 201 }
     )
+
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 // 7 jours
+    })
+
+    return response
+
   } catch (error) {
-    console.error('Registration error:', error)
+    console.error("Registration error:", error)
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
+      { error: "Erreur lors de l'inscription" },
       { status: 500 }
     )
-  } finally {
-    if (client) {
-      await client.close()
-    }
   }
 }

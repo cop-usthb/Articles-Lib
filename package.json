@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "update-profiles": "python userProfilAR.py --trigger manual"
   },
   "dependencies": {
     "@aws-sdk/credential-providers": "latest",

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Heart, BookOpen, Star, Search } from "lucide-react"
+import { Heart, BookOpen, Star, Search, Filter, Bookmark, User, Clock, Tag } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
 import type { Article } from "@/lib/models/Article"
@@ -258,9 +258,9 @@ export default function ArticlesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleFavorite(article.id)}
-                          className={user?.favorites.includes(article.id) ? "text-yellow-500" : ""}
+                          className={user?.favorites?.includes(article.id) ? "text-yellow-500" : ""}
                         >
-                          <Star className={`h-4 w-4 ${user?.favorites.includes(article.id) ? "fill-current" : ""}`} />
+                          <Bookmark className={`h-4 w-4 ${user?.favorites?.includes(article.id) ? "fill-current" : ""}`} />
                         </Button>
                       </div>
                       <Link href={`/articles/${article.id}`}>

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Heart, BookOpen, Users, TrendingUp, Star, Lightbulb, Loader2, AlertCircle } from "lucide-react"
+import { Heart, BookOpen, Users, TrendingUp, Bookmark, Lightbulb, Loader2, AlertCircle, User, Clock } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
 
@@ -14,22 +14,30 @@ interface RecommendedArticle {
   title: string
   abstract: string
   authors_parsed: [string, string, string][]
-  topic: string
+  topic: string[]
   satisfaction_score: number
   recommendation_reason: string
 }
 
 const formatAuthors = (authors: [string, string, string][]) => {
+  if (!authors || authors.length === 0) return "Auteur inconnu"
+  
   return authors
+    .slice(0, 2)
     .map(([lastName, firstName, middleName]) => {
       const fullName = `${firstName} ${middleName ? middleName + " " : ""}${lastName}`.trim()
       return fullName
     })
-    .join(", ")
+    .join(", ") + (authors.length > 2 ? ` et ${authors.length - 2} autres` : "")
+}
+
+const truncateText = (text: string, maxLength: number) => {
+  if (text.length <= maxLength) return text
+  return text.slice(0, maxLength) + "..."
 }
 
 export default function HomePage() {
-  const { user, loading, logout } = useAuth()
+  const { user, loading, logout, toggleLike, toggleFavorite } = useAuth()
   const [recommendedArticles, setRecommendedArticles] = useState<RecommendedArticle[]>([])
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -43,21 +51,15 @@ export default function HomePage() {
     setErrorMessage('')
     
     try {
-      console.log('Fetching recommendations...') // Debug
-      
       const response = await fetch("/api/articles/recommendations", {
         credentials: 'include'
       })
       
-      console.log('Response status:', response.status) // Debug
-      
       if (response.ok) {
         const data = await response.json()
-        console.log('Recommendations data:', data) // Debug
         setRecommendedArticles(data.articles || [])
       } else {
         const errorData = await response.json()
-        console.error("Failed to fetch recommendations:", errorData)
         setErrorMessage(errorData.error || 'Erreur lors du chargement des recommandations')
       }
     } catch (error) {
@@ -68,10 +70,26 @@ export default function HomePage() {
     }
   }
 
-  const getSatisfactionColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-100"
-    if (score >= 60) return "text-yellow-600 bg-yellow-100"
-    return "text-orange-600 bg-orange-100"
+  const handleLike = async (articleId: string) => {
+    if (!user) return
+    try {
+      await toggleLike(articleId)
+    } catch (error) {
+      console.error("Failed to toggle like:", error)
+    }
+  }
+
+  const handleFavorite = async (articleId: string) => {
+    if (!user) return
+    try {
+      await toggleFavorite(articleId)
+    } catch (error) {
+      console.error("Failed to toggle favorite:", error)
+    }
+  }
+
+  const getMainTopic = (topics: string[]) => {
+    return topics && topics.length > 0 ? topics[0] : "Non classé"
   }
 
   if (loading) {
@@ -160,7 +178,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Section Recommandations */}
+      {/* Section Recommandations - Mêmes cartes que la page articles */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
@@ -170,7 +188,7 @@ export default function HomePage() {
                 Recommandations pour vous
               </h2>
               <p className="text-xl text-gray-600">
-                Découvrez des articles populaires et intéressants
+                Articles sélectionnés par notre intelligence artificielle
               </p>
             </div>
             <Button 
@@ -214,35 +232,69 @@ export default function HomePage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recommendedArticles.map((article) => (
-                <Card key={article._id} className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
+                <Card key={article._id} className="hover:shadow-lg transition-shadow cursor-pointer group">
                   <CardHeader>
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge variant="secondary">{article.topic}</Badge>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${getSatisfactionColor(article.satisfaction_score)}`}>
-                        {article.satisfaction_score}%
+                    <div className="flex justify-between items-start mb-3">
+                      <Badge variant="secondary">
+                        {getMainTopic(article.topic)}
+                      </Badge>
+                      <div className="flex items-center space-x-1">
+                        {user && (
+                          <>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                handleLike(article.id)
+                              }}
+                              className={user.likes?.includes(article.id) ? "text-red-500" : ""}
+                            >
+                              <Heart className={`h-4 w-4 ${user.likes?.includes(article.id) ? "fill-current" : ""}`} />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                handleFavorite(article.id)
+                              }}
+                              className={user.favorites?.includes(article.id) ? "text-yellow-500" : ""}
+                            >
+                              <Bookmark className={`h-4 w-4 ${user.favorites?.includes(article.id) ? "fill-current" : ""}`} />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <CardTitle className="text-lg line-clamp-2">{article.title}</CardTitle>
-                    <CardDescription className="text-sm text-blue-600 font-medium">
-                      {article.recommendation_reason}
-                    </CardDescription>
+                    
+                    <Link href={`/articles/${article.id}`}>
+                      <CardTitle className="text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                        {article.title}
+                      </CardTitle>
+                    </Link>
+                    
+                    <div className="flex items-center text-sm text-gray-500 mb-2">
+                      <User className="h-4 w-4 mr-1" />
+                      <span>{formatAuthors(article.authors_parsed)}</span>
+                    </div>
                   </CardHeader>
+
                   <CardContent>
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">{article.abstract}</p>
-                    {article.authors_parsed && article.authors_parsed.length > 0 && (
-                      <p className="text-xs text-gray-500 mb-3">
-                        Par {formatAuthors(article.authors_parsed)}
-                      </p>
-                    )}
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-400">ID: {article.id}</span>
-                      <div className="flex items-center space-x-1">
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                      {article.abstract}
+                    </p>
+
+                    <div className="flex items-center justify-between">
+                      <Link href={`/articles/${article.id}`}>
                         <Button size="sm" variant="outline">
-                          <Heart className="w-4 h-4" />
+                          Lire l'article
                         </Button>
-                        <Button size="sm" variant="outline">
-                          <Star className="w-4 h-4" />
-                        </Button>
+                      </Link>
+                      
+                      <div className="text-xs text-gray-500">
+                        <Clock className="h-3 w-3 inline mr-1" />
+                        5 min de lecture
                       </div>
                     </div>
                   </CardContent>

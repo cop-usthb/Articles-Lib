@@ -1,31 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 import { MongoClient, ObjectId } from "mongodb"
 import jwt from "jsonwebtoken"
-
-function verifyToken(token: string) {
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as { userId: string }
-  } catch (error) {
-    return null
-  }
-}
+import { updateUserProfilesAsync } from "@/lib/updateUserProfiles"
 
 export async function POST(request: NextRequest) {
   let client: MongoClient | null = null
   
   try {
     const token = request.cookies.get("token")?.value
-
     if (!token) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
     }
 
-    const decoded = verifyToken(token)
-    if (!decoded) {
-      return NextResponse.json({ error: "Token invalide" }, { status: 401 })
-    }
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { userId: string }
     const { articleId } = await request.json()
+
+    if (!articleId) {
+      return NextResponse.json({ error: "ID d'article requis" }, { status: 400 })
+    }
 
     const uri = process.env.MONGODB_URI
     if (!uri) {
@@ -34,9 +26,10 @@ export async function POST(request: NextRequest) {
 
     client = new MongoClient(uri)
     await client.connect()
+    
     const db = client.db('Online_courses')
 
-    // Trouver l'utilisateur
+    // Récupérer l'utilisateur
     const user = await db.collection('userAR').findOne({ 
       _id: new ObjectId(decoded.userId) 
     })
@@ -88,6 +81,9 @@ export async function POST(request: NextRequest) {
       favorites: updatedUser!.favorites || [],
       read: updatedUser!.read || [],
     }
+
+    // Déclencher la mise à jour des profils utilisateurs en arrière-plan
+    updateUserProfilesAsync('article_read')
 
     return NextResponse.json({
       user: userData,

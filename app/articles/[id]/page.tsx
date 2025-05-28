@@ -6,22 +6,30 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Heart, Star, ExternalLink, Calendar, User, Tag } from "lucide-react"
+import { ArrowLeft, Heart, Bookmark, ExternalLink, Calendar, User, Tag, BookOpen, FileText, Building, Hash, Key } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
 
 interface Article {
   _id: string
   id: string
+  num?: number
   title: string
   abstract: string
-  authors_parsed: Array<{ first: string; last: string }>
-  topic: string
-  subtopic: string
+  authors_parsed: [string, string, string][]
+  topic: string[]
+  subtopic?: string[]
+  categories?: string
+  submitter?: string
+  "journal-ref"?: string
   doi?: string
-  journal_ref?: string
-  comments?: string
+  "report-no"?: string
+  license?: string
+  keywords?: string[]
   createdAt?: string
+  readTime?: string
+  likes?: number
+  satisfaction?: number
 }
 
 export default function ArticlePage() {
@@ -73,22 +81,17 @@ export default function ArticlePage() {
     await toggleFavorite(article.id)
   }
 
-  const getMainTopic = (topic: string | undefined) => {
-    if (!topic || typeof topic !== "string") {
-      return "Topic non défini"
-    }
-    return topic.split(".")[0].replace(/-/g, " ")
+  const formatAuthors = (authors: [string, string, string][]) => {
+    if (!authors || authors.length === 0) return "Auteur inconnu"
+    
+    return authors.map(([lastName, firstName, middleName]) => {
+      const fullName = `${firstName} ${middleName ? middleName + " " : ""}${lastName}`.trim()
+      return fullName
+    }).join(", ")
   }
 
-  const formatAuthors = (authors: Array<{ first: string; last: string }>) => {
-    if (!authors || authors.length === 0) return "Auteur inconnu"
-    if (authors.length === 1) {
-      return `${authors[0].first} ${authors[0].last}`
-    }
-    if (authors.length <= 3) {
-      return authors.map((author) => `${author.first} ${author.last}`).join(", ")
-    }
-    return `${authors[0].first} ${authors[0].last} et al.`
+  const getMainTopic = (topics: string[]) => {
+    return topics && topics.length > 0 ? topics[0] : "Non classé"
   }
 
   if (loading) {
@@ -141,105 +144,229 @@ export default function ArticlePage() {
       </header>
 
       {/* Article Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-wrap gap-2 mb-4">
-              <Badge variant="secondary">{getMainTopic(article.topic)}</Badge>
-              {article.subtopic && <Badge variant="outline">{article.subtopic}</Badge>}
-            </div>
-
-            <CardTitle className="text-2xl lg:text-3xl leading-tight">{article.title}</CardTitle>
-
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mt-4">
-              <div className="flex items-center gap-1">
-                <User className="h-4 w-4" />
-                <span>{formatAuthors(article.authors_parsed)}</span>
-              </div>
-
-              {article.createdAt && (
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>{new Date(article.createdAt).toLocaleDateString("fr-FR")}</span>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Article principal */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                {/* Topics et catégories */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Badge variant="default" className="bg-blue-100 text-blue-800">
+                    {getMainTopic(article.topic)}
+                  </Badge>
+                  {article.subtopic && article.subtopic.length > 0 && (
+                    <Badge variant="outline" className="border-green-300 text-green-700">
+                      {article.subtopic[0]}
+                    </Badge>
+                  )}
+                  {article.categories && (
+                    <Badge variant="secondary">
+                      {article.categories}
+                    </Badge>
+                  )}
                 </div>
-              )}
 
-              <div className="flex items-center gap-1">
-                <Tag className="h-4 w-4" />
-                <span>ID: {article.id}</span>
-              </div>
-            </div>
-          </CardHeader>
+                <CardTitle className="text-2xl lg:text-3xl leading-tight mb-4">
+                  {article.title}
+                </CardTitle>
 
-          <CardContent>
-            {/* Actions */}
-            {user && (
-              <div className="flex items-center gap-2 mb-6 p-4 bg-gray-50 rounded-lg">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLike}
-                  className={user.likes?.includes(article.id) ? "text-red-500" : ""}
-                >
-                  <Heart className={`h-4 w-4 mr-2 ${user.likes?.includes(article.id) ? "fill-current" : ""}`} />
-                  {user.likes?.includes(article.id) ? "Aimé" : "Aimer"}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleFavorite}
-                  className={user.favorites?.includes(article.id) ? "text-yellow-500" : ""}
-                >
-                  <Star className={`h-4 w-4 mr-2 ${user.favorites?.includes(article.id) ? "fill-current" : ""}`} />
-                  {user.favorites?.includes(article.id) ? "Favori" : "Ajouter aux favoris"}
-                </Button>
-              </div>
-            )}
-
-            <Separator className="my-6" />
-
-            {/* Abstract */}
-            <div className="prose max-w-none">
-              <h2 className="text-xl font-semibold mb-4">Résumé</h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{article.abstract}</p>
-            </div>
-
-            <Separator className="my-8" />
-
-            {/* Additional Information */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {article.journal_ref && (
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Référence de journal</h3>
-                  <p className="text-gray-600">{article.journal_ref}</p>
+                {/* Informations d'auteur et de soumission */}
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-start gap-2">
+                    <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <span className="font-medium">Auteurs :</span> {formatAuthors(article.authors_parsed)}
+                    </div>
+                  </div>
+                  
+                  {article.submitter && (
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      <span><span className="font-medium">Soumis par :</span> {article.submitter}</span>
+                    </div>
+                  )}
                 </div>
-              )}
+              </CardHeader>
 
-              {article.doi && (
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-2">DOI</h3>
-                  <a
-                    href={`https://doi.org/${article.doi}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                  >
-                    {article.doi}
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
-              )}
+              <CardContent>
+                {/* Actions utilisateur */}
+                {user && (
+                  <div className="flex items-center gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleLike}
+                      className={user.likes?.includes(article.id) ? "text-red-500" : ""}
+                    >
+                      <Heart className={`h-4 w-4 mr-2 ${user.likes?.includes(article.id) ? "fill-current" : ""}`} />
+                      {user.likes?.includes(article.id) ? "Aimé" : "Aimer"}
+                    </Button>
 
-              {article.comments && (
-                <div className="md:col-span-2">
-                  <h3 className="font-semibold text-gray-800 mb-2">Commentaires</h3>
-                  <p className="text-gray-600">{article.comments}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleFavorite}
+                      className={user.favorites?.includes(article.id) ? "text-yellow-500" : ""}
+                    >
+                      <Bookmark className={`h-4 w-4 mr-2 ${user.favorites?.includes(article.id) ? "fill-current" : ""}`} />
+                      {user.favorites?.includes(article.id) ? "Favori" : "Ajouter aux favoris"}
+                    </Button>
+                  </div>
+                )}
+
+                <Separator className="my-6" />
+
+                {/* Résumé */}
+                <div className="prose max-w-none">
+                  <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Résumé
+                  </h2>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {article.abstract}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Mots-clés */}
+                {article.keywords && article.keywords.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                      <Key className="h-4 w-4" />
+                      Mots-clés
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {article.keywords.map((keyword, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {keyword}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar avec informations supplémentaires */}
+          <div className="lg:col-span-1">
+            <div className="space-y-6">
+              {/* Informations de l'article */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Hash className="h-5 w-5" />
+                    Informations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <span className="font-medium text-sm text-gray-600">ID Article :</span>
+                    <p className="text-sm font-mono bg-gray-100 p-2 rounded mt-1">{article.id}</p>
+                  </div>
+
+                  {article.num && (
+                    <div>
+                      <span className="font-medium text-sm text-gray-600">Numéro :</span>
+                      <p className="text-sm">{article.num}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Références et liens */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ExternalLink className="h-5 w-5" />
+                    Références
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {article["journal-ref"] && (
+                    <div>
+                      <span className="font-medium text-sm text-gray-600 flex items-center gap-1 mb-1">
+                        <Building className="h-3 w-3" />
+                        Journal :
+                      </span>
+                      <p className="text-sm bg-gray-50 p-2 rounded">{article["journal-ref"]}</p>
+                    </div>
+                  )}
+
+                  {article.doi && (
+                    <div>
+                      <span className="font-medium text-sm text-gray-600 mb-1 block">DOI :</span>
+                      <a
+                        href={`https://doi.org/${article.doi}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 bg-blue-50 p-2 rounded hover:bg-blue-100 transition-colors"
+                      >
+                        {article.doi}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  )}
+
+                  {article["report-no"] && (
+                    <div>
+                      <span className="font-medium text-sm text-gray-600">Numéro de rapport :</span>
+                      <p className="text-sm bg-gray-50 p-2 rounded mt-1">{article["report-no"]}</p>
+                    </div>
+                  )}
+
+                  {article.license && (
+                    <div>
+                      <span className="font-medium text-sm text-gray-600">Licence :</span>
+                      <p className="text-sm">{article.license}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Topics détaillés */}
+              {(article.topic.length > 1 || (article.subtopic && article.subtopic.length > 1)) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Tag className="h-5 w-5" />
+                      Classification
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {article.topic.length > 0 && (
+                      <div>
+                        <span className="font-medium text-sm text-gray-600 block mb-2">Topics :</span>
+                        <div className="space-y-1">
+                          {article.topic.map((topic, index) => (
+                            <Badge key={index} variant="secondary" className="mr-2 mb-1">
+                              {topic}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {article.subtopic && article.subtopic.length > 0 && (
+                      <div>
+                        <span className="font-medium text-sm text-gray-600 block mb-2">Sous-topics :</span>
+                        <div className="space-y-1">
+                          {article.subtopic.map((subtopic, index) => (
+                            <Badge key={index} variant="outline" className="mr-2 mb-1">
+                              {subtopic}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
     </div>
   )

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 import { updateUserInterests } from "@/lib/db/users"
+import { updateUserProfilesAsync } from "@/lib/updateUserProfiles"
 
 export async function PUT(request: NextRequest) {
   try {
@@ -13,6 +14,9 @@ export async function PUT(request: NextRequest) {
     const { interests } = await request.json()
 
     await updateUserInterests(decoded.userId, interests)
+
+    // Déclencher la mise à jour des profils utilisateurs en arrière-plan
+    updateUserProfilesAsync('interests_updated')
 
     return NextResponse.json({ message: "Centres d'intérêt mis à jour" })
   } catch (error) {

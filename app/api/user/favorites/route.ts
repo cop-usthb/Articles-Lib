@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyToken } from "@/lib/auth"
 import { findUserById, updateUser } from "@/lib/db/users"
-import { getArticlesByIds } from "@/lib/db/articles"
+import { updateUserProfilesAsync } from "@/lib/updateUserProfiles"
 
 export async function GET(request: NextRequest) {
   try {
@@ -56,12 +56,15 @@ export async function POST(request: NextRequest) {
 
     const updatedUser = await updateUser(decoded.userId, { favorites })
 
+    // Déclencher la mise à jour des profils utilisateurs en arrière-plan
+    updateUserProfilesAsync('article_favorited')
+
     return NextResponse.json({
       user: updatedUser,
       isFavorite: favorites.includes(articleId),
     })
   } catch (error) {
-    console.error("Favorite toggle error:", error)
-    return NextResponse.json({ error: "Erreur lors de la mise à jour des favoris" }, { status: 500 })
+    console.error("Favorite error:", error)
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }
 }
