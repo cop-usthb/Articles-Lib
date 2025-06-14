@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Heart, BookOpen, Users, TrendingUp, Bookmark, Lightbulb, Loader2, AlertCircle, User, Clock } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
+import RecommendationSection from '@/components/RecommendationSection';
 
 interface RecommendedArticle {
   _id: string
@@ -127,7 +128,7 @@ export default function HomePage() {
             <div className="flex items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Bonjour, {user.name}</span>
+                  <span className="text-sm text-gray-600">{user.name}</span>
                   <Link href="/profile">
                     <Button variant="outline" size="sm">Profil</Button>
                   </Link>
@@ -213,66 +214,36 @@ export default function HomePage() {
             </div>
           )}
 
+          {/* Grille des recommandations */}
           {loadingRecommendations ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader>
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-3 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="text-center py-12">
+              <Loader2 className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-600">Génération des recommandations...</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendedArticles.map((article) => (
-                <Card key={article._id} className="hover:shadow-lg transition-shadow cursor-pointer group">
-                  <CardHeader>
-                    <div className="flex justify-between items-start mb-3">
-                      <Badge variant="secondary">
+              {recommendedArticles.map((article, index) => (
+                <Card key={article._id} className="hover:shadow-lg transition-shadow relative">
+                  {/* Badge de pourcentage d'exactitude */}
+                  <div className="absolute top-3 right-3 z-10">
+                    <Badge 
+                      variant="secondary" 
+                      className="bg-blue-100 text-blue-800 border-blue-200 font-semibold px-2 py-1 text-xs"
+                    >
+                      {article.satisfaction_score}% 
+                    </Badge>
+                  </div>
+
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge variant="outline" className="text-xs">
                         {getMainTopic(article.topic)}
                       </Badge>
-                      <div className="flex items-center space-x-1">
-                        {user && (
-                          <>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                handleLike(article.id)
-                              }}
-                              className={user.likes?.includes(article.id) ? "text-red-500" : ""}
-                            >
-                              <Heart className={`h-4 w-4 ${user.likes?.includes(article.id) ? "fill-current" : ""}`} />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                handleFavorite(article.id)
-                              }}
-                              className={user.favorites?.includes(article.id) ? "text-yellow-500" : ""}
-                            >
-                              <Bookmark className={`h-4 w-4 ${user.favorites?.includes(article.id) ? "fill-current" : ""}`} />
-                            </Button>
-                          </>
-                        )}
-                      </div>
                     </div>
                     
-                    <Link href={`/articles/${article.id}`}>
-                      <CardTitle className="text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
-                        {article.title}
-                      </CardTitle>
-                    </Link>
+                    <CardTitle className="text-lg leading-tight line-clamp-2 pr-16">
+                      {article.title}
+                    </CardTitle>
                     
                     <div className="flex items-center text-sm text-gray-500 mb-2">
                       <User className="h-4 w-4 mr-1" />

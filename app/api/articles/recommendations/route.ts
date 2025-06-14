@@ -17,7 +17,7 @@ function generateMockRecommendations(articles: any[], userInterests: string[] = 
       score += Math.floor(Math.random() * 20) + 10 // Bonus si l'intérêt correspond
     }
     
-    score = Math.min(score, 100) // Limiter à 100
+    score = Math.min(score, 95) // Limiter à 95% pour plus de réalisme
     
     return {
       _id: article._id.toString(),
