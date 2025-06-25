@@ -258,3 +258,176 @@
 2025-06-25 13:18:14,983 - INFO - GNN recommendations: 0
 2025-06-25 13:18:14,983 - INFO - Content-based recommendations: 12
 2025-06-25 13:18:15,619 - INFO - Total candidates before MMR: 12
+2025-06-25 14:37:42,406 - INFO - Connected to MongoDB successfully.
+2025-06-25 14:37:42,407 - INFO - Loading data from MongoDB...
+2025-06-25 14:37:42,407 - INFO - Loading data from MongoDB...
+2025-06-25 14:37:43,218 - INFO - Loaded data: 20 users, 1133 courses, 3513 articles
+2025-06-25 14:37:43,242 - INFO - Loaded data: 20 users, 1133 courses, 3513 articles
+2025-06-25 14:38:14,659 - INFO - Created graph with 30 edges
+2025-06-25 14:38:14,666 - INFO - Loading pre-trained embeddings...
+2025-06-25 14:38:14,668 - ERROR - Warning: File not found at '../e-learning-platform/user_profiles.csv'.
+2025-06-25 14:38:15,032 - INFO - Loaded user_profiles_articles.csv: 10 rows, 1173 columns
+2025-06-25 14:38:15,032 - ERROR - Warning: File not found at '../e-learning-platform/item_vectors_onehot.csv'.
+2025-06-25 14:38:15,360 - INFO - Created graph with 30 edges
+2025-06-25 14:38:15,367 - INFO - Loading pre-trained embeddings...
+2025-06-25 14:38:15,368 - ERROR - Warning: File not found at '../e-learning-platform/user_profiles.csv'.
+2025-06-25 14:38:15,870 - INFO - Loaded user_profiles_articles.csv: 10 rows, 1173 columns
+2025-06-25 14:38:15,870 - ERROR - Warning: File not found at '../e-learning-platform/item_vectors_onehot.csv'.
+2025-06-25 14:38:17,879 - INFO - Loaded articles_profiles.csv: 3513 rows, 1173 columns
+2025-06-25 14:38:17,904 - INFO - Pre-trained embeddings loaded successfully.
+2025-06-25 14:38:17,906 - INFO - Initializing GNN model...
+2025-06-25 14:38:18,080 - INFO - Created 2873 article embeddings
+2025-06-25 14:38:18,094 - ERROR - Error loading model: Error(s) in loading state_dict for LightGCN:
+	size mismatch for embedding.weight: copying a param with shape torch.Size([4665, 64]) from checkpoint, the shape in current model is torch.Size([4666, 64]).
+2025-06-25 14:38:18,094 - INFO - Continuing with randomly initialized GNN model weights
+2025-06-25 14:38:18,095 - INFO - Generating article recommendations for user 685360092089d3e866e30033...
+2025-06-25 14:38:18,095 - ERROR - User 685360092089d3e866e30033 not found in user index map.
+2025-06-25 14:38:18,175 - INFO - GNN recommendations: 0
+2025-06-25 14:38:18,175 - INFO - Content-based recommendations: 12
+2025-06-25 14:38:18,662 - INFO - Loaded articles_profiles.csv: 3513 rows, 1173 columns
+2025-06-25 14:38:18,665 - INFO - Pre-trained embeddings loaded successfully.
+2025-06-25 14:38:18,665 - INFO - Initializing GNN model...
+2025-06-25 14:38:18,678 - INFO - Total candidates before MMR: 12
+2025-06-25 14:38:18,774 - INFO - Created 2873 article embeddings
+2025-06-25 14:38:18,779 - ERROR - Error loading model: Error(s) in loading state_dict for LightGCN:
+	size mismatch for embedding.weight: copying a param with shape torch.Size([4665, 64]) from checkpoint, the shape in current model is torch.Size([4666, 64]).
+2025-06-25 14:38:18,779 - INFO - Continuing with randomly initialized GNN model weights
+2025-06-25 14:38:18,779 - INFO - Generating article recommendations for user 685360092089d3e866e30033...
+2025-06-25 14:38:18,779 - ERROR - User 685360092089d3e866e30033 not found in user index map.
+2025-06-25 14:38:18,825 - INFO - GNN recommendations: 0
+2025-06-25 14:38:18,826 - INFO - Content-based recommendations: 12
+2025-06-25 14:38:19,341 - INFO - Total candidates before MMR: 12
+2025-06-25 14:39:26,244 - INFO - Connected to MongoDB successfully.
+2025-06-25 14:39:26,245 - INFO - Loading data from MongoDB...
+2025-06-25 14:39:26,897 - INFO - Loaded data: 20 users, 1133 courses, 3513 articles
+2025-06-25 14:39:34,517 - INFO - Created graph with 30 edges
+2025-06-25 14:39:34,522 - INFO - Loading pre-trained embeddings...
+2025-06-25 14:39:34,526 - ERROR - Warning: File not found at '../e-learning-platform/user_profiles.csv'.
+2025-06-25 14:39:34,869 - INFO - Loaded user_profiles_articles.csv: 10 rows, 1173 columns
+2025-06-25 14:39:34,869 - ERROR - Warning: File not found at '../e-learning-platform/item_vectors_onehot.csv'.
+2025-06-25 14:39:36,884 - INFO - Loaded articles_profiles.csv: 3513 rows, 1173 columns
+2025-06-25 14:39:36,899 - INFO - Pre-trained embeddings loaded successfully.
+2025-06-25 14:39:36,899 - INFO - Initializing GNN model...
+2025-06-25 14:39:37,046 - INFO - Created 2873 article embeddings
+2025-06-25 14:39:37,058 - ERROR - Error loading model: Error(s) in loading state_dict for LightGCN:
+	size mismatch for embedding.weight: copying a param with shape torch.Size([4665, 64]) from checkpoint, the shape in current model is torch.Size([4666, 64]).
+2025-06-25 14:39:37,058 - INFO - Continuing with randomly initialized GNN model weights
+2025-06-25 14:39:37,059 - INFO - Generating article recommendations for user anonymous...
+2025-06-25 14:39:37,059 - ERROR - User anonymous not found in user index map.
+2025-06-25 14:39:37,059 - ERROR - No pre-trained embeddings found for user anonymous
+2025-06-25 14:39:37,059 - INFO - GNN recommendations: 0
+2025-06-25 14:39:37,059 - INFO - Content-based recommendations: 0
+2025-06-25 14:39:37,059 - INFO - Total candidates before MMR: 0
+2025-06-25 14:49:46,388 - INFO - Connected to MongoDB successfully.
+2025-06-25 14:49:46,388 - INFO - Loading data from MongoDB...
+2025-06-25 14:49:46,388 - INFO - Loading data from MongoDB...
+2025-06-25 14:49:47,089 - INFO - Loaded data: 20 users, 1133 courses, 3513 articles
+2025-06-25 14:49:47,157 - INFO - Loaded data: 20 users, 1133 courses, 3513 articles
+2025-06-25 14:49:49,527 - INFO - Created graph with 30 edges
+2025-06-25 14:49:49,527 - INFO - Created graph with 30 edges
+2025-06-25 14:49:49,534 - INFO - Loading pre-trained embeddings...
+2025-06-25 14:49:49,537 - ERROR - Warning: File not found at '../e-learning-platform/user_profiles.csv'.
+2025-06-25 14:49:49,537 - INFO - Loading pre-trained embeddings...
+2025-06-25 14:49:49,538 - ERROR - Warning: File not found at '../e-learning-platform/user_profiles.csv'.
+2025-06-25 14:49:50,024 - INFO - Loaded user_profiles_articles.csv: 10 rows, 1173 columns
+2025-06-25 14:49:50,024 - INFO - Loaded user_profiles_articles.csv: 10 rows, 1173 columns
+2025-06-25 14:49:50,024 - ERROR - Warning: File not found at '../e-learning-platform/item_vectors_onehot.csv'.
+2025-06-25 14:49:50,024 - ERROR - Warning: File not found at '../e-learning-platform/item_vectors_onehot.csv'.
+2025-06-25 14:49:52,957 - INFO - Loaded articles_profiles.csv: 3513 rows, 1173 columns
+2025-06-25 14:49:52,979 - INFO - Pre-trained embeddings loaded successfully.
+2025-06-25 14:49:52,979 - INFO - Initializing GNN model...
+2025-06-25 14:49:52,982 - INFO - Loaded articles_profiles.csv: 3513 rows, 1173 columns
+2025-06-25 14:49:52,984 - INFO - Pre-trained embeddings loaded successfully.
+2025-06-25 14:49:52,984 - INFO - Initializing GNN model...
+2025-06-25 14:49:53,195 - INFO - Created 2873 article embeddings
+2025-06-25 14:49:53,195 - INFO - Created 2873 article embeddings
+2025-06-25 14:49:53,212 - ERROR - Error loading model: Error(s) in loading state_dict for LightGCN:
+	size mismatch for embedding.weight: copying a param with shape torch.Size([4665, 64]) from checkpoint, the shape in current model is torch.Size([4666, 64]).
+2025-06-25 14:49:53,212 - INFO - Continuing with randomly initialized GNN model weights
+2025-06-25 14:49:53,212 - INFO - Continuing with randomly initialized GNN model weights
+2025-06-25 14:49:53,213 - INFO - Generating article recommendations for user 6849b66444305b49455c615f...
+2025-06-25 14:49:53,213 - INFO - Generating article recommendations for user 6849b66444305b49455c615f...
+2025-06-25 14:49:53,213 - ERROR - User 6849b66444305b49455c615f not found in user index map.
+2025-06-25 14:49:53,213 - ERROR - User 6849b66444305b49455c615f not found in user index map.
+2025-06-25 14:49:53,302 - INFO - GNN recommendations: 0
+2025-06-25 14:49:53,302 - INFO - Content-based recommendations: 12
+2025-06-25 14:49:53,800 - INFO - Total candidates before MMR: 12
+2025-06-25 14:49:53,825 - INFO - Total candidates before MMR: 12
+2025-06-25 14:50:42,640 - INFO - Connected to MongoDB successfully.
+2025-06-25 14:50:42,641 - INFO - Loading data from MongoDB...
+2025-06-25 14:50:42,641 - INFO - Loading data from MongoDB...
+2025-06-25 14:50:43,284 - INFO - Loaded data: 20 users, 1133 courses, 3513 articles
+2025-06-25 14:50:43,298 - INFO - Loaded data: 20 users, 1133 courses, 3513 articles
+2025-06-25 14:50:45,641 - INFO - Created graph with 30 edges
+2025-06-25 14:50:45,647 - INFO - Loading pre-trained embeddings...
+2025-06-25 14:50:45,649 - ERROR - Warning: File not found at '../e-learning-platform/user_profiles.csv'.
+2025-06-25 14:50:46,065 - INFO - Loaded user_profiles_articles.csv: 10 rows, 1173 columns
+2025-06-25 14:50:46,066 - ERROR - Warning: File not found at '../e-learning-platform/item_vectors_onehot.csv'.
+2025-06-25 14:50:46,452 - INFO - Created graph with 30 edges
+2025-06-25 14:50:46,457 - INFO - Loading pre-trained embeddings...
+2025-06-25 14:50:46,458 - ERROR - Warning: File not found at '../e-learning-platform/user_profiles.csv'.
+2025-06-25 14:50:46,921 - INFO - Loaded user_profiles_articles.csv: 10 rows, 1173 columns
+2025-06-25 14:50:46,922 - ERROR - Warning: File not found at '../e-learning-platform/item_vectors_onehot.csv'.
+2025-06-25 14:50:48,839 - INFO - Loaded articles_profiles.csv: 3513 rows, 1173 columns
+2025-06-25 14:50:48,854 - INFO - Pre-trained embeddings loaded successfully.
+2025-06-25 14:50:48,854 - INFO - Initializing GNN model...
+2025-06-25 14:50:49,010 - INFO - Created 2873 article embeddings
+2025-06-25 14:50:49,026 - ERROR - Error loading model: Error(s) in loading state_dict for LightGCN:
+	size mismatch for embedding.weight: copying a param with shape torch.Size([4665, 64]) from checkpoint, the shape in current model is torch.Size([4666, 64]).
+2025-06-25 14:50:49,026 - INFO - Continuing with randomly initialized GNN model weights
+2025-06-25 14:50:49,027 - INFO - Generating article recommendations for user 6849b66444305b49455c615f...
+2025-06-25 14:50:49,027 - ERROR - User 6849b66444305b49455c615f not found in user index map.
+2025-06-25 14:50:49,108 - INFO - GNN recommendations: 0
+2025-06-25 14:50:49,108 - INFO - Content-based recommendations: 12
+2025-06-25 14:50:49,621 - INFO - Loaded articles_profiles.csv: 3513 rows, 1173 columns
+2025-06-25 14:50:49,623 - INFO - Pre-trained embeddings loaded successfully.
+2025-06-25 14:50:49,623 - INFO - Initializing GNN model...
+2025-06-25 14:50:49,628 - INFO - Total candidates before MMR: 12
+2025-06-25 14:50:49,747 - INFO - Created 2873 article embeddings
+2025-06-25 14:50:49,751 - ERROR - Error loading model: Error(s) in loading state_dict for LightGCN:
+	size mismatch for embedding.weight: copying a param with shape torch.Size([4665, 64]) from checkpoint, the shape in current model is torch.Size([4666, 64]).
+2025-06-25 14:50:49,751 - INFO - Continuing with randomly initialized GNN model weights
+2025-06-25 14:50:49,751 - INFO - Generating article recommendations for user 6849b66444305b49455c615f...
+2025-06-25 14:50:49,751 - ERROR - User 6849b66444305b49455c615f not found in user index map.
+2025-06-25 14:50:49,802 - INFO - GNN recommendations: 0
+2025-06-25 14:50:49,802 - INFO - Content-based recommendations: 12
+2025-06-25 14:50:50,295 - INFO - Total candidates before MMR: 12
+2025-06-25 14:54:48,144 - INFO - Connected to MongoDB successfully.
+2025-06-25 14:54:48,145 - INFO - Loading data from MongoDB...
+2025-06-25 14:54:48,145 - INFO - Loading data from MongoDB...
+2025-06-25 14:54:48,843 - INFO - Loaded data: 20 users, 1133 courses, 3513 articles
+2025-06-25 14:54:48,861 - INFO - Loaded data: 20 users, 1133 courses, 3513 articles
+2025-06-25 14:54:51,196 - INFO - Created graph with 30 edges
+2025-06-25 14:54:51,201 - INFO - Loading pre-trained embeddings...
+2025-06-25 14:54:51,203 - ERROR - Warning: File not found at '../e-learning-platform/user_profiles.csv'.
+2025-06-25 14:54:51,392 - INFO - Created graph with 30 edges
+2025-06-25 14:54:51,397 - INFO - Loading pre-trained embeddings...
+2025-06-25 14:54:51,398 - ERROR - Warning: File not found at '../e-learning-platform/user_profiles.csv'.
+2025-06-25 14:54:51,639 - INFO - Loaded user_profiles_articles.csv: 10 rows, 1173 columns
+2025-06-25 14:54:51,639 - ERROR - Warning: File not found at '../e-learning-platform/item_vectors_onehot.csv'.
+2025-06-25 14:54:51,838 - INFO - Loaded user_profiles_articles.csv: 10 rows, 1173 columns
+2025-06-25 14:54:51,838 - ERROR - Warning: File not found at '../e-learning-platform/item_vectors_onehot.csv'.
+2025-06-25 14:54:54,596 - INFO - Loaded articles_profiles.csv: 3513 rows, 1173 columns
+2025-06-25 14:54:54,633 - INFO - Pre-trained embeddings loaded successfully.
+2025-06-25 14:54:54,633 - INFO - Initializing GNN model...
+2025-06-25 14:54:54,805 - INFO - Loaded articles_profiles.csv: 3513 rows, 1173 columns
+2025-06-25 14:54:54,807 - INFO - Pre-trained embeddings loaded successfully.
+2025-06-25 14:54:54,807 - INFO - Initializing GNN model...
+2025-06-25 14:54:54,851 - INFO - Created 2873 article embeddings
+2025-06-25 14:54:54,868 - ERROR - Error loading model: Error(s) in loading state_dict for LightGCN:
+	size mismatch for embedding.weight: copying a param with shape torch.Size([4665, 64]) from checkpoint, the shape in current model is torch.Size([4666, 64]).
+2025-06-25 14:54:54,868 - INFO - Continuing with randomly initialized GNN model weights
+2025-06-25 14:54:54,868 - INFO - Generating article recommendations for user 6849b66444305b49455c615f...
+2025-06-25 14:54:54,868 - ERROR - User 6849b66444305b49455c615f not found in user index map.
+2025-06-25 14:54:54,935 - INFO - Created 2873 article embeddings
+2025-06-25 14:54:54,940 - ERROR - Error loading model: Error(s) in loading state_dict for LightGCN:
+	size mismatch for embedding.weight: copying a param with shape torch.Size([4665, 64]) from checkpoint, the shape in current model is torch.Size([4666, 64]).
+2025-06-25 14:54:54,940 - INFO - Continuing with randomly initialized GNN model weights
+2025-06-25 14:54:54,941 - INFO - Generating article recommendations for user 6849b66444305b49455c615f...
+2025-06-25 14:54:54,941 - ERROR - User 6849b66444305b49455c615f not found in user index map.
+2025-06-25 14:54:54,963 - INFO - GNN recommendations: 0
+2025-06-25 14:54:54,963 - INFO - Content-based recommendations: 12
+2025-06-25 14:54:54,995 - INFO - GNN recommendations: 0
+2025-06-25 14:54:54,996 - INFO - Content-based recommendations: 12
+2025-06-25 14:54:55,710 - INFO - Total candidates before MMR: 12
+2025-06-25 14:54:55,759 - INFO - Total candidates before MMR: 12

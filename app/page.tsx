@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Heart, BookOpen, Users, TrendingUp, Bookmark, Lightbulb, Loader2, AlertCircle, User, Clock } from "lucide-react"
+import { Heart, BookOpen, Users, TrendingUp, Bookmark, Lightbulb, Loader2, AlertCircle, User, Clock, LogIn, UserPlus } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
 import RecommendationSection from '@/components/RecommendationSection';
@@ -44,10 +44,22 @@ export default function HomePage() {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    fetchRecommendations()
+    // 🔧 MODIFICATION: Ne charger les recommandations que si l'utilisateur est connecté
+    if (user) {
+      fetchRecommendations()
+    } else {
+      // Réinitialiser les recommandations si l'utilisateur se déconnecte
+      setRecommendedArticles([])
+      setErrorMessage('')
+    }
   }, [user])
 
   const fetchRecommendations = async () => {
+    // 🔧 GARDE: Ne pas exécuter si pas d'utilisateur
+    if (!user) {
+      return
+    }
+
     setLoadingRecommendations(true)
     setErrorMessage('')
     
@@ -179,7 +191,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Section Recommandations - Mêmes cartes que la page articles */}
+      {/* Section Recommandations - MODIFIÉE */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
@@ -192,94 +204,149 @@ export default function HomePage() {
                 Articles sélectionnés par notre intelligence artificielle
               </p>
             </div>
-            <Button 
-              onClick={fetchRecommendations}
-              variant="outline"
-              disabled={loadingRecommendations}
-            >
-              {loadingRecommendations ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <TrendingUp className="w-4 h-4 mr-2" />
-              )}
-              Actualiser
-            </Button>
+            {/* 🔧 MODIFICATION: Bouton "Actualiser" visible seulement si connecté */}
+            {user && (
+              <Button 
+                onClick={fetchRecommendations}
+                variant="outline"
+                disabled={loadingRecommendations}
+              >
+                {loadingRecommendations ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                )}
+                Actualiser
+              </Button>
+            )}
           </div>
 
-          {/* Message d'erreur */}
-          {errorMessage && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
-              <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
-              <span className="text-red-700">{errorMessage}</span>
-            </div>
-          )}
-
-          {/* Grille des recommandations */}
-          {loadingRecommendations ? (
-            <div className="text-center py-12">
-              <Loader2 className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-spin" />
-              <p className="text-gray-600">Génération des recommandations...</p>
+          {/* 🔧 MODIFICATION PRINCIPALE: Affichage conditionnel selon l'état de connexion */}
+          {!user ? (
+            // Utilisateur NON connecté - Message d'invitation
+            <div className="text-center py-16 px-4">
+              <div className="max-w-md mx-auto">
+                <div className="bg-blue-50 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                  <TrendingUp className="w-12 h-12 text-blue-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  Découvrez vos recommandations personnalisées
+                </h3>
+                <p className="text-gray-600 mb-8 text-lg">
+                  Connectez-vous pour accéder à des recommandations d'articles scientifiques 
+                  personnalisées grâce à notre intelligence artificielle avancée.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center space-x-2 text-sm text-gray-500 mb-6">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <span>Recommandations IA</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                      <span>Contenu personnalisé</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                      <span>Suivi des lectures</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link href="/login">
+                      <Button size="lg" className="w-full sm:w-auto">
+                        <LogIn className="mr-2 h-5 w-5" />
+                        Se Connecter
+                      </Button>
+                    </Link>
+                    <Link href="/register">
+                      <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                        <UserPlus className="mr-2 h-5 w-5" />
+                        Créer un Compte
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendedArticles.map((article, index) => (
-                <Card key={article._id} className="hover:shadow-lg transition-shadow relative">
-                  {/* Badge de pourcentage d'exactitude */}
-                  <div className="absolute top-3 right-3 z-10">
-                    <Badge 
-                      variant="secondary" 
-                      className="bg-blue-100 text-blue-800 border-blue-200 font-semibold px-2 py-1 text-xs"
-                    >
-                      {article.satisfaction_score}% 
-                    </Badge>
-                  </div>
+            // Utilisateur connecté - Affichage des recommandations
+            <>
+              {/* Message d'erreur */}
+              {errorMessage && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+                  <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+                  <span className="text-red-700">{errorMessage}</span>
+                </div>
+              )}
 
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge variant="outline" className="text-xs">
-                        {getMainTopic(article.topic)}
-                      </Badge>
-                    </div>
-                    
-                    <CardTitle className="text-lg leading-tight line-clamp-2 pr-16">
-                      {article.title}
-                    </CardTitle>
-                    
-                    <div className="flex items-center text-sm text-gray-500 mb-2">
-                      <User className="h-4 w-4 mr-1" />
-                      <span>{formatAuthors(article.authors_parsed)}</span>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent>
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                      {article.abstract}
-                    </p>
-
-                    <div className="flex items-center justify-between">
-                      <Link href={`/articles/${article.id}`}>
-                        <Button size="sm" variant="outline">
-                          Lire l'article
-                        </Button>
-                      </Link>
-                      
-                      <div className="text-xs text-gray-500">
-                        <Clock className="h-3 w-3 inline mr-1" />
-                        5 min de lecture
+              {/* Grille des recommandations */}
+              {loadingRecommendations ? (
+                <div className="text-center py-12">
+                  <Loader2 className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-spin" />
+                  <p className="text-gray-600">Génération des recommandations...</p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {recommendedArticles.map((article, index) => (
+                    <Card key={article._id} className="hover:shadow-lg transition-shadow relative">
+                      {/* Badge de pourcentage d'exactitude */}
+                      <div className="absolute top-3 right-3 z-10">
+                        <Badge 
+                          variant="secondary" 
+                          className="bg-blue-100 text-blue-800 border-blue-200 font-semibold px-2 py-1 text-xs"
+                        >
+                          {article.satisfaction_score}% 
+                        </Badge>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
 
-          {recommendedArticles.length === 0 && !loadingRecommendations && !errorMessage && (
-            <div className="text-center py-12">
-              <Lightbulb className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune recommandation disponible</h3>
-              <p className="text-gray-600">Essayez de rafraîchir ou de vous connecter pour des recommandations personnalisées.</p>
-            </div>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge variant="outline" className="text-xs">
+                            {getMainTopic(article.topic)}
+                          </Badge>
+                        </div>
+                        
+                        <CardTitle className="text-lg leading-tight line-clamp-2 pr-16">
+                          {article.title}
+                        </CardTitle>
+                        
+                        <div className="flex items-center text-sm text-gray-500 mb-2">
+                          <User className="h-4 w-4 mr-1" />
+                          <span>{formatAuthors(article.authors_parsed)}</span>
+                        </div>
+                      </CardHeader>
+
+                      <CardContent>
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                          {article.abstract}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <Link href={`/articles/${article.id}`}>
+                            <Button size="sm" variant="outline">
+                              Lire l'article
+                            </Button>
+                          </Link>
+                          
+                          <div className="text-xs text-gray-500">
+                            <Clock className="h-3 w-3 inline mr-1" />
+                            5 min de lecture
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {recommendedArticles.length === 0 && !loadingRecommendations && !errorMessage && (
+                <div className="text-center py-12">
+                  <Lightbulb className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune recommandation disponible</h3>
+                  <p className="text-gray-600">Essayez de rafraîchir pour obtenir des recommandations personnalisées.</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
