@@ -532,6 +532,7 @@ class HybridRecommendationSystem:
             self._log_error(f"Error fetching title for {item_id}: {e}")
             return f"Unknown {domain.title()} {item_id}"
     
+
     def generate_recommendations(self, user_id: str, domain: str, 
                                k: int = 5, lambda_param: float = 0.7) -> List[Dict]:
         """
@@ -548,6 +549,7 @@ class HybridRecommendationSystem:
         """
         try:
             self._log_info(f"Generating {domain} recommendations for user {user_id}...")
+
             
             # Get recommendations from both models
             gnn_recs = self.get_gnn_recommendations(user_id, domain, k=k)
@@ -559,15 +561,19 @@ class HybridRecommendationSystem:
             # Return recommendations from available methods
             final_results = []
             
-            # Add GNN recommendations
-            for i, item_id in enumerate(gnn_recs):
-                title = self.get_item_title(item_id, domain)
-                final_results.append({
-                    "id": item_id,
-                    "title": title,
-                    "score": 1.0 - (i * 0.1),  # Simple scoring based on rank
-                    "method": "gnn"
-                })
+            # 🔧 CORRECTION: Utiliser une fonction globale ou une méthode statique
+            if self._get_user_interacted_articles_nb(user_id) != 0:
+                #utiliser seulement content based si aucune interaction
+                print("User has interacted with articles, can use GNN.")
+                # Add GNN recommendations
+                for i, item_id in enumerate(gnn_recs):
+                    title = self.get_item_title(item_id, domain)
+                    final_results.append({
+                        "id": item_id,
+                        "title": title,
+                        "score": 1.0 - (i * 0.1),  # Simple scoring based on rank
+                        "method": "gnn"
+                    })
             
             # Add content-based recommendations
             for i, item_id in enumerate(cb_recs):
@@ -637,6 +643,32 @@ class HybridRecommendationSystem:
             except:
                 pass
             return basic_results
+
+    def _get_user_interacted_articles_nb(self, user_id):
+        """Méthode de classe pour récupérer le nombre d'interactions utilisateur"""
+        try:
+            # Convertir l'user_id en ObjectId si c'est une string
+            if isinstance(user_id, str) and len(user_id) == 24:
+                user_obj_id = ObjectId(user_id)
+            else:
+                user_obj_id = user_id
+            
+            user = self.userAR_col.find_one({"_id": user_obj_id})
+            
+            if user:
+                # Récupérer les articles depuis les listes likes, favorites et read
+                likes = user.get("likes", [])
+                favorites = user.get("favorites", [])
+                read = user.get("read", [])
+                
+                # Combiner toutes les interactions et éliminer les doublons
+                all_interactions = set(likes + favorites + read)
+                return len(all_interactions)
+            
+            return 0
+        except Exception as e:
+            self._log_error(f"Erreur lors de la récupération des interactions: {e}")
+            return 0
 
 
 def main():
