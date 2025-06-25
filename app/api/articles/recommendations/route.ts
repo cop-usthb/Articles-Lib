@@ -161,13 +161,13 @@ function getRecommendationReason(topic: string | string[], userInterests: string
   
   if (score >= 80) {
     if (userInterests.some(interest => topicArray.includes(interest))) {
-      return `Correspond parfaitement à votre intérêt pour ${mainTopic}`;
+      return `Correspond parfaitement à votre intérêt pour ${mainTopic} (${score}%)`;
     }
-    return `Article très populaire en ${mainTopic}`;
+    return `Article très populaire en ${mainTopic} (${score}%)`;
   } else if (score >= 60) {
-    return `Article potentiellement intéressant en ${mainTopic}`;
+    return `Article potentiellement intéressant en ${mainTopic} (${score}%)`;
   }
-  return `Découvrez de nouveaux sujets en ${mainTopic}`;
+  return `Découvrez de nouveaux sujets en ${mainTopic} (${score}%)`;
 }
 
 export async function GET(request: NextRequest) {
@@ -243,19 +243,32 @@ export async function GET(request: NextRequest) {
         }
       );
       
-      // 🔧 AMÉLIORATION: Conversion score en pourcentage
-      let rawScore = recommendation?.score || 0;
+      // 🔧 AMÉLIORATION: Utilisation de score_percentage du script Python
+      let score = 75; // Score par défaut
       
-      // Si le score est entre -1 et 1, le convertir en pourcentage
-      if (rawScore >= -1 && rawScore <= 1) {
-        // Normaliser de [-1, 1] vers [30, 95]
-        rawScore = ((rawScore + 1) / 2) * 65 + 30;
-      } else if (rawScore < 30) {
-        // Si le score est très bas, l'ajuster
-        rawScore = Math.max(30, rawScore * 100);
+      if (recommendation && typeof recommendation === 'object') {
+        // Priorité au score_percentage normalisé
+        if (recommendation.score_percentage !== undefined) {
+          score = Math.round(recommendation.score_percentage);
+        }
+        // Fallback vers le score brut si score_percentage n'existe pas
+        else if (recommendation.score !== undefined) {
+          let rawScore = recommendation.score;
+          
+          // Si le score est entre -1 et 1, le convertir en pourcentage
+          if (rawScore >= -1 && rawScore <= 1) {
+            rawScore = ((rawScore + 1) / 2) * 65 + 30;
+          } else if (rawScore < 30) {
+            rawScore = Math.max(30, rawScore * 100);
+          }
+          
+          score = Math.min(95, Math.max(30, Math.round(rawScore)));
+        }
       }
       
-      const score = Math.min(95, Math.max(30, Math.round(rawScore)));
+      // S'assurer que le score est dans la plage 0-100
+      score = Math.min(100, Math.max(0, score));
+      
       const topicArray = Array.isArray(article.topic) ? article.topic : [article.topic].filter(Boolean);
       
       return {
@@ -271,11 +284,19 @@ export async function GET(request: NextRequest) {
           topicArray, 
           pythonResult.user_interests || pythonResult.interests || [], 
           score
-        )
+        ),
+        method: recommendation?.method || 'unknown' // Ajouter la méthode de recommandation
       };
-    });
+    })
+    // 🔧 AMÉLIORATION: Trier les articles par score décroissant (meilleurs scores en premier)
+    .sort((a, b) => b.satisfaction_score - a.satisfaction_score);
 
-    console.log('Articles formatés:', recommendedArticles.length);
+    console.log('Articles formatés et triés par score:', recommendedArticles.length);
+    console.log('Scores des premiers articles:', recommendedArticles.slice(0, 5).map(a => ({
+      title: a.title.substring(0, 30),
+      score: a.satisfaction_score
+    })));
+
     console.log('=== Fin API Recommandations (recommendation_script.py) ===');
 
     return NextResponse.json({

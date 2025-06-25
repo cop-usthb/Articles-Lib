@@ -34,6 +34,7 @@ from bson.objectid import ObjectId
 import json
 import logging
 from typing import List, Dict, Tuple, Optional
+from scipy import stats  # Add this import for Z-score normalization
 
 
 class HybridRecommendationSystem:
@@ -533,6 +534,43 @@ class HybridRecommendationSystem:
             return f"Unknown {domain.title()} {item_id}"
     
 
+    def normalize_scores_to_percentage(self, scores: List[float]) -> List[float]:
+        """
+        Normalize scores using Z-Score normalization and clipping to percentage.
+        
+        Args:
+            scores: List of raw MMR scores
+            
+        Returns:
+            List of normalized scores as percentages (0-100)
+        """
+        if not scores or len(scores) == 1:
+            return [50.0] * len(scores)  # Default to 50% if no variation
+        
+        try:
+            # Convert to numpy array
+            scores_array = np.array(scores)
+            
+            # Z-Score normalization
+            z_scores = stats.zscore(scores_array)
+            
+            # Clip z-scores to reasonable range (-3, 3) to avoid extreme values
+            z_scores_clipped = np.clip(z_scores, -3, 3)
+            
+            # Transform to 0-100 range
+            # Map -3 to 0 and +3 to 100
+            percentages = ((z_scores_clipped + 3) / 6) * 100
+            
+            # Ensure values are within [0, 100] range
+            percentages = np.clip(percentages, 0, 100)
+            
+            return percentages.tolist()
+            
+        except Exception as e:
+            self._log_error(f"Error normalizing scores: {e}")
+            # Return uniform distribution if normalization fails
+            return [50.0] * len(scores)
+
     def generate_recommendations(self, user_id: str, domain: str, 
                                k: int = 5, lambda_param: float = 0.7) -> List[Dict]:
         """
@@ -593,14 +631,18 @@ class HybridRecommendationSystem:
                 if item_emb_dict and all_candidates:
                     mmr_results = self.mmr_diversification(all_candidates, user_emb, item_emb_dict, lambda_param, k*2)
                     
-                    # Update final results with MMR scores and combine sources
-                    mmr_dict = {item["ID"]: item for item in mmr_results}
+                    # Extract MMR scores for normalization
+                    mmr_scores = [item["MMR_Score"] for item in mmr_results]
+                    normalized_percentages = self.normalize_scores_to_percentage(mmr_scores)
+                    
+                    # Update final results with MMR scores, percentages and combine sources
+                    mmr_dict = {item["ID"]: (item, percentage) for item, percentage in zip(mmr_results, normalized_percentages)}
                     updated_results = []
                     
                     for result in final_results:
                         item_id = result["id"]
                         if item_id in mmr_dict:
-                            mmr_item = mmr_dict[item_id]
+                            mmr_item, score_percentage = mmr_dict[item_id]
                             
                             # Determine sources
                             sources = []
@@ -613,10 +655,18 @@ class HybridRecommendationSystem:
                                 "id": item_id,
                                 "title": result["title"],
                                 "score": float(mmr_item["MMR_Score"]),
+                                "score_percentage": round(score_percentage, 1),  # Add normalized percentage score
                                 "method": " + ".join(sources) if len(sources) > 1 else sources[0] if sources else "unknown"
                             })
                     
                     final_results = updated_results
+            else:
+                # If no MMR is applied, still add score_percentage based on ranking
+                ranking_scores = [result["score"] for result in final_results]
+                normalized_percentages = self.normalize_scores_to_percentage(ranking_scores)
+                
+                for i, result in enumerate(final_results):
+                    result["score_percentage"] = round(normalized_percentages[i], 1)
             
             # Sort by score (descending)
             final_results.sort(key=lambda x: x["score"], reverse=True)
@@ -629,12 +679,16 @@ class HybridRecommendationSystem:
             basic_results = []
             try:
                 gnn_recs = self.get_gnn_recommendations(user_id, domain, k=k)
+                basic_scores = [1.0 - (i * 0.1) for i in range(len(gnn_recs))]
+                normalized_percentages = self.normalize_scores_to_percentage(basic_scores)
+                
                 for i, item_id in enumerate(gnn_recs):
                     title = self.get_item_title(item_id, domain)
                     basic_results.append({
                         "id": item_id,
                         "title": title,
-                        "score": 1.0 - (i * 0.1),
+                        "score": basic_scores[i],
+                        "score_percentage": round(normalized_percentages[i], 1),
                         "method": "gnn"
                     })
             except:
@@ -648,7 +702,7 @@ def main():
     parser.add_argument('user_id', type=str, help='User ID to generate recommendations for')
     parser.add_argument('domain', type=str, choices=['course', 'article'], 
                        help='Domain for recommendations')
-    parser.add_argument('--k', type=int, default=5, 
+    parser.add_argument('--k', type=int, default=15, 
                        help='Number of recommendations per method (default: 5)')
     parser.add_argument('--lambda_param', type=float, default=0.7,
                        help='MMR lambda parameter for relevance vs diversity (default: 0.7)')
