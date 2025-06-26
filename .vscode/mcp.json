@@ -1,0 +1,13 @@
+{
+    "servers": {
+        "MongoDB": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "mongodb-mcp-server",
+                "--connectionString",
+                "mongodb+srv://Nazimouzaoui:N%40zim2002@cluster001.y4nrdvh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster001"
+            ]
+        }
+    }
+}

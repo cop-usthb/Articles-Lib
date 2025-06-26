@@ -424,10 +424,15 @@ class HybridRecommendationSystem:
                            lambda_param: float = 0.7, k: int = 10) -> List[Dict]:
         """Apply MMR diversification to candidate items."""
         if not candidates:
+            self._log_error("No candidates provided for MMR diversification")
             return []
         
         valid_candidates = [c for c in candidates if c in item_emb_dict]
         if not valid_candidates:
+            self._log_error("No valid candidates found in item embeddings")
+            # print the candidates and item_emb_dict for debugging
+            self._log_error(f"Item embeddings: {item_emb_dict.keys()}")
+            self._log_error(f"Candidates: {candidates}")
             return []
         
         selected = []
@@ -478,6 +483,9 @@ class HybridRecommendationSystem:
                     "MMR_Score": mmr_scores[best_item]
                 })
                 remaining.remove(best_item)
+            else:
+                self._log_error("No valid MMR scores computed, stopping selection")
+                continue
         
         return selected
     
@@ -515,23 +523,29 @@ class HybridRecommendationSystem:
             self._log_error(f"Error getting user embedding: {e}")
             return None
     
-    def get_item_title(self, item_id: str, domain: str) -> str:
+    def get_item_title(self, item_id: str, domain: str, method: str) -> str:
         """Get the title/name of an item."""
         try:
             if domain == 'course':
-                doc = self.courses_col.find_one({"id": int(item_id)})
-                return doc.get("course", f"Course {item_id}") if doc else f"Unknown Course {item_id}"
+                if method == "gnn":
+                    doc = self.courses_col.find_one({"_id": ObjectId(item_id)})
+                    return str(doc.get("id")), doc.get("course", f"Course {item_id}") if doc else f"Unknown Course {item_id}"
+                else:
+                    doc = self.courses_col.find_one({"id": int(item_id)})
+                    return str(doc.get("id")), doc.get("course", f"Course {item_id}") if doc else f"Unknown Course {item_id}"
             else:  # domain == 'article'
                 # Handle article ID formatting
                 search_id = item_id
                 if item_id.startswith('7') and '.' in item_id:
                     search_id = "0" + item_id
-                
-                doc = self.articles_col.find_one({"id": search_id})
-                return doc.get("title", f"Article {item_id}") if doc else f"Unknown Article {item_id}"
+                if method == "gnn":
+                    doc = self.articles_col.find_one({"_id": ObjectId(item_id)})
+                else:
+                    doc = self.articles_col.find_one({"id": search_id})
+                return doc.get("id"), doc.get("title", f"Article {item_id}") if doc else f"Unknown Article {item_id}"
         except Exception as e:
             self._log_error(f"Error fetching title for {item_id}: {e}")
-            return f"Unknown {domain.title()} {item_id}"
+            return item_id, f"Unknown {domain.title()} {item_id}"
     
 
     def normalize_scores_to_percentage(self, scores: List[float]) -> List[float]:
@@ -594,7 +608,11 @@ class HybridRecommendationSystem:
             cb_recs = self.get_content_based_recommendations(user_id, domain, k=k)
             
             self._log_info(f"GNN recommendations: {len(gnn_recs)}")
+            for rec in gnn_recs:
+                self._log_info(f"Recommended: {json.dumps(rec)}")
             self._log_info(f"Content-based recommendations: {len(cb_recs)}")
+            for rec in cb_recs:
+                self._log_info(f"Recommended Articles: {json.dumps(rec)}")
             
             # Return recommendations from available methods
             final_results = []
@@ -602,9 +620,10 @@ class HybridRecommendationSystem:
             
             # Add GNN recommendations
             for i, item_id in enumerate(gnn_recs):
-                title = self.get_item_title(item_id, domain)
+                id, title = self.get_item_title(item_id, domain, "gnn")
+                self._log_info(f"Adding GNN recommendation: {id} - {title}")
                 final_results.append({
-                    "id": item_id,
+                    "id": id,
                     "title": title,
                     "score": 1.0 - (i * 0.1),  # Simple scoring based on rank
                     "method": "gnn"
@@ -612,15 +631,17 @@ class HybridRecommendationSystem:
 
             # Add content-based recommendations
             for i, item_id in enumerate(cb_recs):
-                title = self.get_item_title(item_id, domain)
+                id, title = self.get_item_title(item_id, domain, "cb")
                 final_results.append({
-                    "id": item_id,
+                    "id": id,
                     "title": title,
                     "score": 1.0 - (i * 0.1),  # Simple scoring based on rank
                     "method": "content_based"
                 })
             
             self._log_info(f"Total candidates before MMR: {len(final_results)}")
+            for result in final_results:
+                self._log_info(f"Candidate: {result['id']} - {result['title']} - Score: {result['score']} - Method: {result['method']}")
             
             # Apply MMR if we have user embeddings and item embeddings
             user_emb = self.get_user_embedding(user_id)
@@ -630,6 +651,7 @@ class HybridRecommendationSystem:
                 
                 if item_emb_dict and all_candidates:
                     mmr_results = self.mmr_diversification(all_candidates, user_emb, item_emb_dict, lambda_param, k*2)
+                    self._log_info(f"MMR results: {len(mmr_results)}")
                     
                     # Extract MMR scores for normalization
                     mmr_scores = [item["MMR_Score"] for item in mmr_results]
@@ -656,7 +678,7 @@ class HybridRecommendationSystem:
                                 "title": result["title"],
                                 "score": float(mmr_item["MMR_Score"]),
                                 "score_percentage": round(score_percentage, 1),  # Add normalized percentage score
-                                "method": " + ".join(sources) if len(sources) > 1 else sources[0] if sources else "unknown"
+                                "method": " + ".join(sources) if len(sources) > 1 else sources[0] if sources else "gnn"
                             })
                     
                     final_results = updated_results
